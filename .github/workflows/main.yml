@@ -11,10 +11,8 @@ jobs:
       - name: Install DDNet
         run: |
           sudo apt update
-          # DDNet зашифрован (чтобы ИИ не обрезал ссылку)
           D_LINK=$(echo "aHR0cHM6Ly9ydS5kZG5ldC5vcmcvZG93bmxvYWRzL0RETmV0LTE5LjgtbGludXhfeDg2XzY0LnRhci54eg==" | base64 -d)
           curl -L "$D_LINK" -o ddnet.tar.xz
-          
           mkdir ddnet_temp
           tar -xvf ddnet.tar.xz -C ddnet_temp --strip-components=1
           cp -r ddnet_temp/* .
@@ -24,22 +22,22 @@ jobs:
 
       - name: Setup Tunnel (Playit.gg)
         run: |
-          # Собираем ссылку Playit по частям
           P_HOST="https://github.com"
           P_ACC="/playit-cloud"
           P_REPO="/playit-agent"
           P_REL="/releases/latest/download/playit-linux-amd64"
-          
-          # Склеиваем и скачиваем
           curl -SsL "${P_HOST}${P_ACC}${P_REPO}${P_REL}" -o playit
           chmod +x playit
           
-          # Запуск БЕЗ лишних аргументов. Ссылка ОБЯЗАТЕЛЬНО появится в логах!
-          ./playit setup &
-          sleep 30
+          # Запускаем и ПРИНУДИТЕЛЬНО выводим логи в консоль в течение 30 секунд
+          timeout 30s ./playit setup || echo "Переходим к запуску сервера..."
           
       - name: Run Server
         run: |
+          # Запускаем туннель в фоне уже ПОСЛЕ того, как увидели ссылку
+          ./playit run & 
+          sleep 5
+          
           echo 'sv_name "GitHub DDNet Server"' > server.cfg
           echo 'sv_map "Linear"' >> server.cfg
           echo 'sv_port 8303' >> server.cfg
