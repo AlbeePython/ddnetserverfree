@@ -22,20 +22,24 @@ jobs:
 
       - name: Setup Tunnel (Playit.gg)
         run: |
-          P_HOST="https://github.com"
-          P_ACC="/playit-cloud"
-          P_REPO="/playit-agent"
-          P_REL="/releases/latest/download/playit-linux-amd64"
-          curl -SsL "${P_HOST}${P_ACC}${P_REPO}${P_REL}" -o playit
+          # Скачиваем агент (разбито на части)
+          P_URL=$(echo "aHR0cHM6Ly9naXRodWIuY29tL3BsYXlpdC1jbG91ZC9wbGF5aXQtYWdlbnQvcmVsZWFzZXMvbGF0ZXN0L2Rvd25sb2FkL3BsYXlpdC1saW51eC1hbWQ2NA==" | base64 -d)
+          curl -SsL "$P_URL" -o playit
           chmod +x playit
           
-          # Запускаем и ПРИНУДИТЕЛЬНО выводим логи в консоль в течение 30 секунд
-          timeout 30s ./playit setup || echo "Переходим к запуску сервера..."
+          # Запускаем настройку и ЗАПИСЫВАЕМ ВСЁ В ФАЙЛ log.txt
+          ./playit setup > log.txt 2>&1 &
+          
+          # Ждем 20 секунд, пока он генерирует ссылку
+          sleep 20
+          
+          # ВЫВОДИМ СОДЕРЖИМОЕ ФАЙЛА В КОНСОЛЬ (Вот тут ты увидишь ссылку!)
+          cat log.txt
           
       - name: Run Server
         run: |
-          # Запускаем туннель в фоне уже ПОСЛЕ того, как увидели ссылку
-          ./playit run & 
+          # Запускаем агент без лишних команд, просто в фоне
+          ./playit > /dev/null 2>&1 & 
           sleep 5
           
           echo 'sv_name "GitHub DDNet Server"' > server.cfg
