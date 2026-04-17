@@ -34,9 +34,9 @@ jobs:
           curl -SsL "${P_HOST}${P_ACC}${P_REPO}${P_REL}" -o playit
           chmod +x playit
           
-          # Запуск. Ищи ссылку claim в логах!
-          ./playit setup --secret_path .playit_secret &
-          sleep 25
+          # Запуск БЕЗ лишних аргументов. Ссылка ОБЯЗАТЕЛЬНО появится в логах!
+          ./playit setup &
+          sleep 30
           
       - name: Run Server
         run: |
