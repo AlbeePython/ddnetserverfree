@@ -1,0 +1,30 @@
+name: Start DDNet Server
+on: workflow_dispatch # Запуск кнопкой
+
+jobs:
+  run-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install DDNet
+        run: |
+          sudo apt update
+          wget https://ddnet.org
+          tar -xvf DDNet-Server-linux_x86_64.tar.xz --strip-components=1
+          chmod +x DDNet-Server
+
+      - name: Setup Tunnel (Playit.gg)
+        run: |
+          # Скачиваем агент туннеля
+          curl -SsL https://github.io | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+          echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://github.io ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+          sudo apt update && sudo apt install playit -y
+          
+          # Запускаем туннель в фоне
+          playit setup --secret_path .playit_secret & 
+          sleep 5
+          
+      - name: Run Server
+        run: ./DDNet-Server -f autoexec_server.cfg
