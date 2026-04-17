@@ -11,26 +11,32 @@ jobs:
       - name: Install DDNet
         run: |
           sudo apt update
-          # Скачиваем последнюю версию сервера
-          wget https://ddnet.org
-          # Распаковываем аккуратно
+          # Скачиваем по твоей точной ссылке
+          curl -L "https://ru.ddnet.org/downloads/DDNet-19.8-linux_x86_64.tar.xz" -o ddnet.tar.xz
+          
+          # Создаем папку и распаковываем
           mkdir ddnet_temp
-          tar -xvf DDNet-Server-linux_x86_64.tar.xz -C ddnet_temp --strip-components=1
+          tar -xvf ddnet.tar.xz -C ddnet_temp --strip-components=1
+          
+          # Копируем файлы в корень, чтобы сервер видел конфиг
           cp -r ddnet_temp/* .
           chmod +x DDNet-Server
+          
+          # Проверка: покажи нам, что файл DDNet-Server на месте
+          ls -l DDNet-Server
 
       - name: Setup Tunnel (Playit.gg)
         run: |
-          # Установка агента туннеля
+          # Установка playit
           curl -SsL https://github.io | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
           echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://github.io ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
           sudo apt update && sudo apt install playit -y
           
-          # Запуск настройки туннеля (ссылка появится в логах через 5-10 секунд)
+          # Запуск настройки. ССЫЛКА БУДЕТ ТУТ!
           playit setup --secret_path .playit_secret &
-          sleep 10
+          sleep 20
           
       - name: Run Server
         run: |
-          # Запуск сервера. Он подхватит твой файл autoexec_server.cfg
+          # Запуск сервера
           ./DDNet-Server -f autoexec_server.cfg
