@@ -11,32 +11,29 @@ jobs:
       - name: Install DDNet
         run: |
           sudo apt update
-          # Скачиваем по твоей точной ссылке
-          curl -L "https://ru.ddnet.org/downloads/DDNet-19.8-linux_x86_64.tar.xz" -o ddnet.tar.xz
-          
-          # Создаем папку и распаковываем
+          # Скачиваем DDNet (собираем из частей, чтобы не обрезалось)
+          D_URL="https://ru.ddnet.org/downloads/DDNet-19.8-linux_x86_64.tar.xz"
+          D_FILE="DDNet-19.8-linux_x86_64.tar.xz"
+          curl -L "${D_URL}${D_FILE}" -o ddnet.tar.xz
           mkdir ddnet_temp
           tar -xvf ddnet.tar.xz -C ddnet_temp --strip-components=1
-          
-          # Копируем файлы в корень, чтобы сервер видел конфиг
           cp -r ddnet_temp/* .
           chmod +x DDNet-Server
-          
-          # Проверка: покажи нам, что файл DDNet-Server на месте
-          ls -l DDNet-Server
 
       - name: Setup Tunnel (Playit.gg)
         run: |
-          # Установка playit
-          curl -SsL https://github.io | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
-          echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://github.io ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
-          sudo apt update && sudo apt install playit -y
+          # Используем твою ссылку на скрипт установки
+          wget https://github.com/aBoredDev/playit-setup-script/archive/refs/heads/main.zip
+          unzip main.zip
+          cd playit-setup-script-main
+          # Установка playit через их скрипт
+          sudo chmod +x setup.sh
+          sudo ./setup.sh
           
-          # Запуск настройки. ССЫЛКА БУДЕТ ТУТ!
+          # Запуск настройки. Ссылка появится в логах ниже!
           playit setup --secret_path .playit_secret &
-          sleep 20
+          sleep 25
           
       - name: Run Server
         run: |
-          # Запуск сервера
           ./DDNet-Server -f autoexec_server.cfg
